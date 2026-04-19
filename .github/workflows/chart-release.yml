@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - 'charts/**'
+      - '.github/workflows/chart-release.yml'
+  workflow_dispatch:
 
 permissions:
   contents: write
