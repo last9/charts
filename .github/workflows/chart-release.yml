@@ -40,6 +40,11 @@ jobs:
         run: |
           for chart in charts/*/; do
             helm dependency update "$chart"
+            if [ -d "$chart/charts" ]; then
+              (cd "$chart/charts" && for tgz in *.tgz; do
+                [ -f "$tgz" ] && tar xzf "$tgz" && rm -f "$tgz"
+              done)
+            fi
           done
 
       - name: Run chart-releaser
