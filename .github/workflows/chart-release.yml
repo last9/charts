@@ -26,12 +26,19 @@ jobs:
 
       - uses: azure/setup-helm@v4
         with:
-          version: v3.15.0
+          version: v3.15.4
+
+      - name: Update chart dependencies
+        run: |
+          for chart in charts/*/; do
+            helm dependency update "$chart"
+          done
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.6.0
         with:
           charts_dir: charts
+          skip_existing: true
         env:
           CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -42,9 +49,10 @@ jobs:
           GHCR_ORG: ${{ github.repository_owner }}
         run: |
           echo "$GHCR_TOKEN" | helm registry login ghcr.io -u "$GHCR_USER" --password-stdin
+          mkdir -p .cr-release-packages
           for chart in charts/*/; do
             helm package "$chart" -d .cr-release-packages
           done
           for pkg in .cr-release-packages/*.tgz; do
-            helm push "$pkg" "oci://ghcr.io/${GHCR_ORG}/charts"
+            helm push "$pkg" "oci://ghcr.io/${GHCR_ORG}/charts" || true
           done
