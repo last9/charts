@@ -128,3 +128,61 @@ clusterCollector:
   metrics:
     enabled: true
     collectionInterval: 30s
+
+# ─── OpenTelemetry Operator (optional) ───
+# Enables Instrumentation CR for auto-instrumentation of Java, Python, Node.js, .NET, Go applications.
+# Disabled by default. Requires cert-manager OR admissionWebhooks.certManager.enabled=false with auto-generated certs.
+opentelemetry-operator:
+  enabled: false
+  manager:
+    collectorImage:
+      repository: otel/opentelemetry-collector-contrib
+      tag: "0.150.1"
+  admissionWebhooks:
+    certManager:
+      enabled: false
+    autoGenerateCert:
+      enabled: true
+
+# Instrumentation CR — rendered when opentelemetry-operator.enabled=true.
+# Applications opt in via pod annotation: instrumentation.opentelemetry.io/inject-java: "last9/last9"
+instrumentation:
+  enabled: true
+  name: last9
+  # Sampler for traces
+  sampler:
+    type: parentbased_traceidratio
+    argument: "1.0"
+  # Java/Python/Node/.NET/Go image overrides — leave empty to use operator defaults.
+  java:
+    image: ""
+  python:
+    image: ""
+  nodejs:
+    image: ""
+  dotnet:
+    image: ""
+  go:
+    image: ""
+
+# ─── kube-prometheus-stack (optional) ───
+# Bundles Prometheus Operator, kube-state-metrics, node-exporter, alertmanager, grafana.
+# Disabled by default. Enable if cluster has no existing Prometheus Operator.
+# If existing Prometheus Operator present, leave disabled — agent's prometheus receiver scrapes cluster targets.
+kube-prometheus-stack:
+  enabled: false
+  # Minimize surface — disable what Last9 ingests anyway.
+  prometheus:
+    prometheusSpec:
+      remoteWrite:
+        - url: ""  # Set via --set kube-prometheus-stack.prometheus.prometheusSpec.remoteWrite[0].url=https://...
+  grafana:
+    enabled: false
+  alertmanager:
+    enabled: false
+  kubeStateMetrics:
+    enabled: true
+  nodeExporter:
+    enabled: true
+  prometheusOperator:
+    enabled: true

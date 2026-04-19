@@ -16,7 +16,7 @@ keywords:
   - kubernetes
 home: https://last9.io
 sources:
-  - https://github.com/last9/l9-otel-operator
+  - https://github.com/last9/charts
 maintainers:
   - name: Last9
     email: support@last9.io
@@ -33,3 +33,11 @@ dependencies:
     version: "0.150.1"
     repository: https://open-telemetry.github.io/opentelemetry-helm-charts
     condition: agent.enabled
+  - name: opentelemetry-operator
+    version: "0.110.0"
+    repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+    condition: opentelemetry-operator.enabled
+  - name: kube-prometheus-stack
+    version: "83.6.0"
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: kube-prometheus-stack.enabled

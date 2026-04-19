@@ -49,9 +49,42 @@ helm upgrade --install last9 oci://ghcr.io/last9/charts/last9-k8s-infra \
 | `clusterCollector.enabled` | `true` | Enable cluster-scope Deployment (metrics + events). |
 | `clusterCollector.metrics.enabled` | `true` | `k8s_cluster` receiver — cluster resource state. |
 | `clusterCollector.events.enabled` | `true` | `k8sobjects` receiver — Kubernetes events. |
+| `opentelemetry-operator.enabled` | `false` | Install OpenTelemetry Operator + Instrumentation CR for auto-instrumentation. |
+| `instrumentation.enabled` | `true` | Render Instrumentation CR (requires operator enabled). |
+| `instrumentation.sampler.argument` | `"1.0"` | Trace sampling ratio (0.0–1.0). |
+| `kube-prometheus-stack.enabled` | `false` | Bundle Prometheus Operator + kube-state-metrics + node-exporter. Enable only if cluster has no existing Prometheus Operator. |
 
 Full agent subchart values passthrough under `agent.*`. See [opentelemetry-collector chart](https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-collector).
 Cluster collector knobs: `clusterCollector.{replicaCount,resources,nodeSelector,tolerations,affinity,image}`.
+
+### Auto-instrumentation
+
+Enable operator + annotate workloads:
+
+```bash
+helm upgrade last9 last9/last9-k8s-infra \
+  --reuse-values \
+  --set opentelemetry-operator.enabled=true
+```
+
+Annotate pods (examples):
+
+```yaml
+metadata:
+  annotations:
+    instrumentation.opentelemetry.io/inject-java: "last9/last9"
+    # or inject-python, inject-nodejs, inject-dotnet, inject-go
+```
+
+### Bundled Prometheus (optional)
+
+If no existing Prometheus Operator:
+
+```bash
+helm upgrade last9 last9/last9-k8s-infra \
+  --reuse-values \
+  --set kube-prometheus-stack.enabled=true
+```
 
 ## Upgrade
 
@@ -68,4 +101,4 @@ helm uninstall last9 -n last9
 
 ## Status
 
-`0.1.0` — MVP. Traces auto-instrumentation (operator), GPU, network monitoring, change_events deferred to later versions.
+`0.1.0` — MVP. Includes OTel Operator + Instrumentation (opt-in) and kube-prometheus-stack bundle (opt-in). Deferred: GKE Autopilot preset, network monitoring, change_events preset. GPU telemetry lives in [last9/gpu-telemetry](https://github.com/last9/gpu-telemetry).

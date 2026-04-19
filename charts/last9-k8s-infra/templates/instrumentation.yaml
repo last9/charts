@@ -1,0 +1,44 @@
+{{- if and (index .Values "opentelemetry-operator" "enabled") .Values.instrumentation.enabled -}}
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: {{ .Values.instrumentation.name | default "last9" }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/part-of: last9-k8s-infra
+spec:
+  exporter:
+    endpoint: http://last9-agent.{{ .Release.Namespace }}.svc.cluster.local:4318
+  propagators:
+    - tracecontext
+    - baggage
+    - b3
+  sampler:
+    type: {{ .Values.instrumentation.sampler.type | default "parentbased_traceidratio" }}
+    argument: {{ .Values.instrumentation.sampler.argument | default "1.0" | quote }}
+  resource:
+    resourceAttributes:
+      k8s.cluster.name: {{ .Values.last9.cluster.name | quote }}
+      deployment.environment: {{ .Values.last9.environment | default "production" | quote }}
+  {{- if .Values.instrumentation.java.image }}
+  java:
+    image: {{ .Values.instrumentation.java.image | quote }}
+  {{- end }}
+  {{- if .Values.instrumentation.python.image }}
+  python:
+    image: {{ .Values.instrumentation.python.image | quote }}
+  {{- end }}
+  {{- if .Values.instrumentation.nodejs.image }}
+  nodejs:
+    image: {{ .Values.instrumentation.nodejs.image | quote }}
+  {{- end }}
+  {{- if .Values.instrumentation.dotnet.image }}
+  dotnet:
+    image: {{ .Values.instrumentation.dotnet.image | quote }}
+  {{- end }}
+  {{- if .Values.instrumentation.go.image }}
+  go:
+    image: {{ .Values.instrumentation.go.image | quote }}
+  {{- end }}
+{{- end }}
