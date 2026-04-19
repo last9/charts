@@ -1,0 +1,52 @@
+apiVersion: v1
+entries:
+  last9-k8s-infra:
+  - annotations:
+      artifacthub.io/category: monitoring-logging
+      artifacthub.io/containsSecurityUpdates: "false"
+      artifacthub.io/license: MIT
+      artifacthub.io/prerelease: "true"
+    apiVersion: v2
+    appVersion: 0.150.1
+    created: "2026-04-19T19:46:16.170236351Z"
+    dependencies:
+    - alias: agent
+      condition: agent.enabled
+      name: opentelemetry-collector
+      repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+      version: 0.150.1
+    - condition: opentelemetry-operator.enabled
+      name: opentelemetry-operator
+      repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+      version: 0.110.0
+    - condition: kube-prometheus-stack.enabled
+      name: kube-prometheus-stack
+      repository: https://prometheus-community.github.io/helm-charts
+      version: 83.6.0
+    description: Last9 Kubernetes telemetry via upstream OpenTelemetry Collector (agent
+      daemonset + built-in cluster deployment).
+    digest: 52b680a56e6d1176227373317afc7df37122ee9c01a92d3cecf7bdd6e3899356
+    home: https://last9.io
+    icon: https://last9.io/favicon.ico
+    keywords:
+    - observability
+    - opentelemetry
+    - otel
+    - last9
+    - metrics
+    - logs
+    - traces
+    - kubernetes
+    kubeVersion: '>=1.24.0-0'
+    maintainers:
+    - email: support@last9.io
+      name: Last9
+      url: https://last9.io
+    name: last9-k8s-infra
+    sources:
+    - https://github.com/last9/charts
+    type: application
+    urls:
+    - https://github.com/last9/charts/releases/download/last9-k8s-infra-0.1.0/last9-k8s-infra-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-04-19T19:46:16.170246811Z"
