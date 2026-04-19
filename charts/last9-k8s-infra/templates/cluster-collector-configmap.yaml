@@ -24,7 +24,7 @@ data:
       {{- end }}
 
     processors:
-      k8sattributes:
+      k8s_attributes:
         auth_type: serviceAccount
         passthrough: false
         extract:
@@ -61,7 +61,7 @@ data:
         spike_limit_percentage: 20
 
     exporters:
-      otlphttp/last9:
+      otlp_http/last9:
         endpoint: ${env:LAST9_OTLP_ENDPOINT}
         headers:
           authorization: ${env:LAST9_AUTH}
@@ -83,13 +83,13 @@ data:
         {{- if .Values.clusterCollector.metrics.enabled }}
         metrics:
           receivers: [k8s_cluster]
-          processors: [memory_limiter, k8sattributes, resource/last9, batch]
-          exporters: [otlphttp/last9]
+          processors: [memory_limiter, k8s_attributes, resource/last9, batch]
+          exporters: [otlp_http/last9]
         {{- end }}
         {{- if .Values.clusterCollector.events.enabled }}
         logs:
           receivers: [k8sobjects]
-          processors: [memory_limiter, k8sattributes, resource/last9, batch]
-          exporters: [otlphttp/last9]
+          processors: [memory_limiter, k8s_attributes, resource/last9, batch]
+          exporters: [otlp_http/last9]
         {{- end }}
 {{- end }}
