@@ -1,0 +1,6 @@
+last9:
+  otlpEndpoint: https://otlp.example.com
+  writeToken: "Basic dGVzdDp0ZXN0"
+  cluster:
+    name: ci-test-cluster
+  environment: ci

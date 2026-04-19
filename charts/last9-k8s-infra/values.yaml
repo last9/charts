@@ -1,0 +1,130 @@
+# Last9 global config — single knob for credentials + cluster identity.
+last9:
+  # OTLP HTTP endpoint (e.g. https://otlp.last9.io)
+  otlpEndpoint: ""
+  # Auth header value (e.g. "Basic <base64>"). Used verbatim as Authorization header.
+  # Mutually exclusive with last9.existingSecret.
+  writeToken: ""
+  # Pre-existing secret with key `authorization` holding the full header value.
+  existingSecret: ""
+  # Cluster identity — added as `k8s.cluster.name` resource attribute.
+  cluster:
+    name: ""
+  # Deployment environment — added as `deployment.environment` resource attribute.
+  environment: "production"
+
+# ─── Agent: upstream opentelemetry-collector subchart. DaemonSet. ───
+# Logs (filelog), host metrics, kubelet metrics, k8sattributes, OTLP receiver for app signals.
+agent:
+  enabled: true
+  mode: daemonset
+  fullnameOverride: last9-agent
+  image:
+    repository: otel/opentelemetry-collector-contrib
+  presets:
+    logsCollection:
+      enabled: true
+      includeCollectorLogs: false
+      storeCheckpoints: true
+    hostMetrics:
+      enabled: true
+    kubeletMetrics:
+      enabled: true
+    kubernetesAttributes:
+      enabled: true
+      extractAllPodLabels: true
+      extractAllPodAnnotations: false
+  ports:
+    otlp:
+      enabled: true
+    otlp-http:
+      enabled: true
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  extraEnvs:
+    - name: LAST9_AUTH
+      valueFrom:
+        secretKeyRef:
+          name: last9-k8s-infra-otlp-auth
+          key: authorization
+    - name: LAST9_OTLP_ENDPOINT
+      valueFrom:
+        configMapKeyRef:
+          name: last9-k8s-infra-env
+          key: LAST9_OTLP_ENDPOINT
+    - name: LAST9_CLUSTER_NAME
+      valueFrom:
+        configMapKeyRef:
+          name: last9-k8s-infra-env
+          key: LAST9_CLUSTER_NAME
+    - name: LAST9_ENVIRONMENT
+      valueFrom:
+        configMapKeyRef:
+          name: last9-k8s-infra-env
+          key: LAST9_ENVIRONMENT
+  config:
+    exporters:
+      otlphttp/last9:
+        endpoint: ${env:LAST9_OTLP_ENDPOINT}
+        headers:
+          authorization: ${env:LAST9_AUTH}
+        compression: gzip
+        sending_queue:
+          enabled: true
+          num_consumers: 4
+          queue_size: 5000
+        retry_on_failure:
+          enabled: true
+    processors:
+      resource/last9:
+        attributes:
+          - key: k8s.cluster.name
+            value: ${env:LAST9_CLUSTER_NAME}
+            action: upsert
+          - key: deployment.environment
+            value: ${env:LAST9_ENVIRONMENT}
+            action: upsert
+      batch:
+        send_batch_size: 8192
+        timeout: 10s
+    service:
+      pipelines:
+        logs:
+          exporters: [otlphttp/last9]
+          processors: [k8sattributes, resource/last9, batch]
+        metrics:
+          exporters: [otlphttp/last9]
+          processors: [k8sattributes, resource/last9, batch]
+        traces:
+          exporters: [otlphttp/last9]
+          processors: [k8sattributes, resource/last9, batch]
+
+# ─── Cluster collector: rendered by this chart directly (own templates). ───
+# Single-replica Deployment. Cluster metrics (k8s_cluster receiver) + Kubernetes events (k8sobjects).
+clusterCollector:
+  enabled: true
+  image:
+    repository: otel/opentelemetry-collector-contrib
+    tag: "0.150.1"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  podAnnotations: {}
+  # Events collection (k8sobjects receiver)
+  events:
+    enabled: true
+  # Cluster-level metrics (k8s_cluster receiver)
+  metrics:
+    enabled: true
+    collectionInterval: 30s

@@ -1,0 +1,92 @@
+{{- if .Values.clusterCollector.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: last9-cluster-collector
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "last9.clusterCollectorLabels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.clusterCollector.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "last9.clusterCollectorSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "last9.clusterCollectorSelectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/cluster-collector-configmap.yaml") . | sha256sum }}
+        {{- with .Values.clusterCollector.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: last9-cluster-collector
+      {{- with .Values.clusterCollector.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clusterCollector.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clusterCollector.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: otel-collector
+          image: "{{ .Values.clusterCollector.image.repository }}:{{ .Values.clusterCollector.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.clusterCollector.image.pullPolicy | default "IfNotPresent" }}
+          args: ["--config=/conf/config.yaml"]
+          env:
+            - name: LAST9_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: last9-k8s-infra-otlp-auth
+                  key: authorization
+            - name: LAST9_OTLP_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: last9-k8s-infra-env
+                  key: LAST9_OTLP_ENDPOINT
+            - name: LAST9_CLUSTER_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: last9-k8s-infra-env
+                  key: LAST9_CLUSTER_NAME
+            - name: LAST9_ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: last9-k8s-infra-env
+                  key: LAST9_ENVIRONMENT
+            - name: K8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          ports:
+            - name: health
+              containerPort: 13133
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.clusterCollector.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /conf
+      volumes:
+        - name: config
+          configMap:
+            name: last9-cluster-collector-config
+{{- end }}

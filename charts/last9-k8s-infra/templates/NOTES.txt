@@ -1,0 +1,15 @@
+Last9 k8s-infra {{ .Chart.AppVersion }} installed into namespace {{ .Release.Namespace }}.
+
+Cluster: {{ .Values.last9.cluster.name }}
+OTLP endpoint: {{ .Values.last9.otlpEndpoint }}
+
+Verify agent daemonset:
+  kubectl -n {{ .Release.Namespace }} get daemonset -l app.kubernetes.io/instance={{ .Release.Name }}
+
+Verify cluster deployment:
+  kubectl -n {{ .Release.Namespace }} get deployment -l app.kubernetes.io/instance={{ .Release.Name }}
+
+Tail agent logs:
+  kubectl -n {{ .Release.Namespace }} logs -l app.kubernetes.io/name=opentelemetry-collector -f
+
+Data should appear at https://app.last9.io within ~2 minutes.

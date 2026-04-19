@@ -1,0 +1,7 @@
+*.tgz
+charts/*/charts/
+charts/*/Chart.lock
+.cr-release-packages/
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,75 @@
+{{- if .Values.clusterCollector.enabled -}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: last9-cluster-collector
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "last9.clusterCollectorLabels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: last9-cluster-collector
+  labels:
+    {{- include "last9.clusterCollectorLabels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources:
+      - events
+      - namespaces
+      - namespaces/status
+      - nodes
+      - nodes/spec
+      - nodes/stats
+      - nodes/proxy
+      - pods
+      - pods/status
+      - replicationcontrollers
+      - replicationcontrollers/status
+      - resourcequotas
+      - services
+      - endpoints
+      - persistentvolumes
+      - persistentvolumeclaims
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources:
+      - daemonsets
+      - deployments
+      - replicasets
+      - statefulsets
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources:
+      - jobs
+      - cronjobs
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["autoscaling"]
+    resources:
+      - horizontalpodautoscalers
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["events.k8s.io"]
+    resources:
+      - events
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["networking.k8s.io"]
+    resources:
+      - ingresses
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: last9-cluster-collector
+  labels:
+    {{- include "last9.clusterCollectorLabels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: last9-cluster-collector
+subjects:
+  - kind: ServiceAccount
+    name: last9-cluster-collector
+    namespace: {{ .Release.Namespace }}
+{{- end }}

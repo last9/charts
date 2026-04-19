@@ -1,0 +1,35 @@
+apiVersion: v2
+name: last9-k8s-infra
+description: Last9 Kubernetes telemetry via upstream OpenTelemetry Collector (agent daemonset + built-in cluster deployment).
+type: application
+version: 0.1.0
+appVersion: "0.150.1"
+kubeVersion: ">=1.24.0-0"
+keywords:
+  - observability
+  - opentelemetry
+  - otel
+  - last9
+  - metrics
+  - logs
+  - traces
+  - kubernetes
+home: https://last9.io
+sources:
+  - https://github.com/last9/l9-otel-operator
+maintainers:
+  - name: Last9
+    email: support@last9.io
+    url: https://last9.io
+icon: https://last9.io/favicon.ico
+annotations:
+  artifacthub.io/license: MIT
+  artifacthub.io/category: monitoring-logging
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/prerelease: "true"
+dependencies:
+  - name: opentelemetry-collector
+    alias: agent
+    version: "0.150.1"
+    repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+    condition: agent.enabled

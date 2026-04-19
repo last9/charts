@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["last9"],
+  "properties": {
+    "last9": {
+      "type": "object",
+      "required": ["otlpEndpoint", "cluster"],
+      "properties": {
+        "otlpEndpoint": {
+          "type": "string",
+          "description": "OTLP HTTP endpoint (https://otlp.last9.io). Required at render time."
+        },
+        "writeToken": {
+          "type": "string",
+          "description": "Full Authorization header value (e.g. 'Basic <base64>'). Mutually exclusive with existingSecret."
+        },
+        "existingSecret": {
+          "type": "string",
+          "description": "Name of pre-existing secret containing key 'authorization'."
+        },
+        "cluster": {
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+            "name": { "type": "string" }
+          }
+        },
+        "environment": { "type": "string" }
+      }
+    },
+    "presets": { "type": "object" },
+    "agent": { "type": "object" },
+    "cluster": { "type": "object" }
+  }
+}

@@ -1,0 +1,95 @@
+{{- if .Values.clusterCollector.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: last9-cluster-collector-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "last9.clusterCollectorLabels" . | nindent 4 }}
+data:
+  config.yaml: |
+    receivers:
+      {{- if .Values.clusterCollector.metrics.enabled }}
+      k8s_cluster:
+        collection_interval: {{ .Values.clusterCollector.metrics.collectionInterval | default "30s" }}
+        node_conditions_to_report: [Ready, MemoryPressure, DiskPressure, PIDPressure, NetworkUnavailable]
+        allocatable_types_to_report: [cpu, memory, ephemeral-storage, storage]
+      {{- end }}
+      {{- if .Values.clusterCollector.events.enabled }}
+      k8sobjects:
+        objects:
+          - name: events
+            mode: watch
+            group: events.k8s.io
+      {{- end }}
+
+    processors:
+      k8sattributes:
+        auth_type: serviceAccount
+        passthrough: false
+        extract:
+          metadata:
+            - k8s.pod.name
+            - k8s.pod.uid
+            - k8s.deployment.name
+            - k8s.namespace.name
+            - k8s.node.name
+            - k8s.pod.start_time
+        pod_association:
+          - sources:
+              - from: resource_attribute
+                name: k8s.pod.ip
+          - sources:
+              - from: resource_attribute
+                name: k8s.pod.uid
+          - sources:
+              - from: connection
+      resource/last9:
+        attributes:
+          - key: k8s.cluster.name
+            value: ${env:LAST9_CLUSTER_NAME}
+            action: upsert
+          - key: deployment.environment
+            value: ${env:LAST9_ENVIRONMENT}
+            action: upsert
+      batch:
+        send_batch_size: 8192
+        timeout: 10s
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 20
+
+    exporters:
+      otlphttp/last9:
+        endpoint: ${env:LAST9_OTLP_ENDPOINT}
+        headers:
+          authorization: ${env:LAST9_AUTH}
+        compression: gzip
+        sending_queue:
+          enabled: true
+          num_consumers: 4
+          queue_size: 5000
+        retry_on_failure:
+          enabled: true
+
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+
+    service:
+      extensions: [health_check]
+      pipelines:
+        {{- if .Values.clusterCollector.metrics.enabled }}
+        metrics:
+          receivers: [k8s_cluster]
+          processors: [memory_limiter, k8sattributes, resource/last9, batch]
+          exporters: [otlphttp/last9]
+        {{- end }}
+        {{- if .Values.clusterCollector.events.enabled }}
+        logs:
+          receivers: [k8sobjects]
+          processors: [memory_limiter, k8sattributes, resource/last9, batch]
+          exporters: [otlphttp/last9]
+        {{- end }}
+{{- end }}

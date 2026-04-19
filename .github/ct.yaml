@@ -1,0 +1,7 @@
+chart-dirs:
+  - charts
+chart-repos:
+  - opentelemetry=https://open-telemetry.github.io/opentelemetry-helm-charts
+helm-extra-args: --timeout 600s
+validate-maintainers: false
+check-version-increment: true

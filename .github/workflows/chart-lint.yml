@@ -1,0 +1,39 @@
+name: chart-lint
+
+on:
+  pull_request:
+    paths:
+      - 'charts/**'
+      - '.github/workflows/chart-lint.yml'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.15.4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install chart-testing
+        uses: helm/chart-testing-action@v2.6.1
+
+      - name: Run ct lint
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: ct lint --config .github/ct.yaml --target-branch "$DEFAULT_BRANCH"
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.10.0
+
+      - name: Run ct install
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: ct install --config .github/ct.yaml --target-branch "$DEFAULT_BRANCH"
