@@ -1,5 +1,52 @@
 apiVersion: v1
 entries:
+  l9gpu:
+  - annotations:
+      artifacthub.io/category: monitoring-logging
+      artifacthub.io/changes: |
+        - kind: changed
+          description: Bump OpenTelemetry Collector stack to v0.150
+        - kind: fixed
+          description: Collector builder and example config corrections
+        - kind: changed
+          description: Chart appVersion bumped to 0.2.0
+      artifacthub.io/license: MIT
+      artifacthub.io/links: |
+        - name: Architecture
+          url: https://github.com/last9/gpu-telemetry/blob/main/docs/ARCHITECTURE.md
+        - name: Metrics reference
+          url: https://github.com/last9/gpu-telemetry/blob/main/docs/METRICS.md
+    apiVersion: v2
+    appVersion: 0.2.0
+    created: "2026-04-20T14:11:38.999243477Z"
+    description: Vendor-agnostic GPU telemetry for AI/ML and HPC clusters.
+    digest: 99bf7c49976ced8c68b33f26ba16b462b993ebacbbfd7ea5b61894fe108e981c
+    home: https://github.com/last9/gpu-telemetry
+    icon: https://last9.io/favicon.ico
+    keywords:
+    - gpu
+    - nvidia
+    - amd
+    - gaudi
+    - opentelemetry
+    - otel
+    - telemetry
+    - ml
+    - observability
+    - slurm
+    - dcgm
+    - nvml
+    maintainers:
+    - email: support@last9.io
+      name: Last9 Engineering
+      url: https://last9.io
+    name: l9gpu
+    sources:
+    - https://github.com/last9/gpu-telemetry
+    type: application
+    urls:
+    - https://github.com/last9/charts/releases/download/l9gpu-0.2.0/l9gpu-0.2.0.tgz
+    version: 0.2.0
   last9-k8s-infra:
   - annotations:
       artifacthub.io/category: monitoring-logging
@@ -49,4 +96,4 @@ entries:
     urls:
     - https://github.com/last9/charts/releases/download/last9-k8s-infra-0.1.0/last9-k8s-infra-0.1.0.tgz
     version: 0.1.0
-generated: "2026-04-19T19:46:16.170246811Z"
+generated: "2026-04-20T14:11:38.9992553Z"
