@@ -38,6 +38,27 @@ helm upgrade --install last9 oci://ghcr.io/last9/charts/last9-k8s-infra \
   --set last9.cluster.name=my-cluster
 ```
 
+## Quickstart — `l9gpu`
+
+GPU telemetry for AI/ML clusters (NVIDIA, AMD, Intel Gaudi). Canonical source: [`last9/gpu-telemetry`](https://github.com/last9/gpu-telemetry).
+
+```bash
+kubectl create secret generic l9gpu-otlp -n monitoring \
+  --from-literal=OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.last9.io \
+  --from-literal=OTEL_EXPORTER_OTLP_HEADERS='Authorization=Basic <base64>'
+
+helm install l9gpu last9/l9gpu -n monitoring --create-namespace \
+  --set monitoring.sink=otel \
+  --set monitoring.cluster=my-cluster \
+  --set otlpSecretName=l9gpu-otlp
+```
+
+OCI (canonical from gpu-telemetry repo):
+
+```bash
+helm install l9gpu oci://ghcr.io/last9/gpu-telemetry/l9gpu --version 0.2.1 -n monitoring
+```
+
 ## Contributing
 
 Issues + PRs welcome. Charts follow [Helm best practices](https://helm.sh/docs/chart_best_practices/).
