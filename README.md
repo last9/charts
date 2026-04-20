@@ -15,6 +15,7 @@ helm search repo last9
 | Chart | Description | Docs |
 |---|---|---|
 | [`last9-k8s-infra`](charts/last9-k8s-infra) | Kubernetes telemetry (logs, metrics, events, traces) via upstream OpenTelemetry Collector | [README](charts/last9-k8s-infra/README.md) |
+| [`l9gpu`](charts/l9gpu) | Vendor-agnostic GPU telemetry for AI/ML and HPC clusters (NVIDIA, AMD, Gaudi) | [source](https://github.com/last9/gpu-telemetry) |
 
 ## Quickstart — `last9-k8s-infra`
 
